@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
     glutCreateWindow(TITLE);
 
     init();
+    light();
     glutReshapeFunc(reshape);
     glutDisplayFunc(display);
     glutIdleFunc(idle);
@@ -39,6 +40,21 @@ int main(int argc, char *argv[])
     glutMainLoop();
 
     return 0;
+}
+
+void light()
+{
+    array<GLfloat, 4> ambient = {1, 1, 1, 1};
+    array<GLfloat, 4> diffuse = {1, 1, 1, .5};
+    array<GLfloat, 4> specular = {1, 1, 1, .5};
+    array<GLfloat, 4> poz = {100, 100, 100, 0};
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient.data());
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse.data());
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specular.data());
+
+    glLightfv(GL_LIGHT0, GL_POSITION, poz.data());
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
 }
 
 void init()
@@ -149,7 +165,7 @@ void reshape(GLint w, GLint h)
     // }else{
     //     glOrtho(-2.f * w / h, 2.f * w / h, -2, 2, 1, 20);
     // }
-    gluPerspective(100, static_cast<GLdouble>(w) / h , 0.1, 1000);
+    gluPerspective(100, static_cast<GLdouble>(w) / h , 0.1, 500);
 
     glMatrixMode(GL_MODELVIEW);
     // glLoadIdentity();

@@ -147,7 +147,10 @@ void Object::draw() const {
     for(const auto &f : faces_){
         glBegin(GL_POLYGON);
         for(const auto &iv : f){
-            glVertex3fv(vertices_[iv[0]].data());
+            if(iv[0] != -1)
+                glVertex3fv(vertices_[iv[0]].data());
+            if(iv[2] != -1)
+                glNormal3fv(normalVectors_[iv[2]].data());
         }
         glEnd();
     }

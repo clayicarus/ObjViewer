@@ -17,15 +17,16 @@ enum Axis{
 
 static SphCoor cam_poz(4, Tool::toRad(90), Tool::toRad(30));
 
-static const size_t LEN = 50;
+static constexpr size_t LEN = 50;
 static const int WINDOW_WIDTH = 640;
 static const int WINDOW_HEIGHT = 480;
 static const char TITLE[LEN] = "OBJViewer";
 
 static const GLfloat LINE_WIDTH = 1.5;
-static const unsigned char BG_RED = 213;
-static const unsigned char BG_GREEN = 215;
-static const unsigned char BG_BLUE = 216;
+// 213, 215, 216
+static const unsigned char BG_RED = 0;
+static const unsigned char BG_GREEN = 0;
+static const unsigned char BG_BLUE = 0;
 static const GLfloat BG_ALPHA = 1;
 
 static unsigned int fps_adapt = 10;
@@ -40,5 +41,6 @@ void specialKey(int key, int x, int y);
 void enableSmooth();
 void drawAxis();
 void idle();
+void light();
 
 #endif //OBJVIEWER_MAIN_H
