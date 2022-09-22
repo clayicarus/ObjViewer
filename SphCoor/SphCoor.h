@@ -5,27 +5,27 @@
 #ifndef OBJIMPORT_SPHCOOR_H
 #define OBJIMPORT_SPHCOOR_H
 
-
+#include<GL/freeglut.h>
 class SphCoor{
 public:
     SphCoor() = default;
-    SphCoor(double r, double phi, double theta) :
+    SphCoor(GLfloat r, GLfloat phi, GLfloat theta) :
             r_(r), phi_(phi), theta_(theta) {}
-    double& r() { return r_; }
-    double& phi() { return phi_; }
-    double& theta() { return theta_; }
+    GLfloat& r() { return r_; }
+    GLfloat& phi() { return phi_; }
+    GLfloat& theta() { return theta_; }
 
     void calCart();
-    double x() const { return x_; }
-    double y() const { return y_; }
-    double z() const { return z_; }
+    GLfloat x() const { return x_; }
+    GLfloat y() const { return y_; }
+    GLfloat z() const { return z_; }
 private:
-    double r_ = 0;
-    double phi_ = 0;
-    double theta_ = 0;
-    double x_ = 0;
-    double y_ = 0;
-    double z_ = 0;
+    GLfloat r_ = 0;
+    GLfloat phi_ = 0;
+    GLfloat theta_ = 0;
+    GLfloat x_ = 0;
+    GLfloat y_ = 0;
+    GLfloat z_ = 0;
 };
 
 

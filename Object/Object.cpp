@@ -7,8 +7,6 @@
 #include<fstream>
 #include<unordered_map>
 #include<algorithm>
-#include"../Vertex/Vertex2.h"
-#include"../Vertex/Vertex3.h"
 
 using namespace std;
 
@@ -23,7 +21,7 @@ void Object::readVertex(std::stringstream &ss)
 {
     GLfloat m_v(0);
     vector<GLfloat> fv;
-    Vertex3 vtx3;
+    Vector3 vtx3;
     GLfloat f;
     while(ss >> f){
         fv.push_back(f);
@@ -42,7 +40,7 @@ void Object::readVertex(std::stringstream &ss)
 void Object::readTexture(std::stringstream &ss)
 {
     vector<GLfloat> fv;
-    Vertex2 vtx2;
+    Vector2 vtx2;
     GLfloat f;
     while(ss >> f){
         fv.push_back(f);
@@ -58,7 +56,7 @@ void Object::readTexture(std::stringstream &ss)
 void Object::readNormalVector(std::stringstream &ss)
 {
     vector<GLfloat> fv;
-    Vertex3 vtx3;
+    Vector3 vtx3;
     GLfloat f;
     while(ss >> f){
         fv.push_back(f);
@@ -147,11 +145,16 @@ void Object::draw() const {
     for(const auto &f : faces_){
         glBegin(GL_POLYGON);
         for(const auto &iv : f){
-            glVertex3fv(vertices_[iv[0]].data());
+            if(iv[0] != -1)
+                glVertex3fv(vertices_[iv[0]].data());
+            if(iv[2] != -1)
+                glNormal3fv(normalVectors_[iv[2]].data());
         }
         glEnd();
     }
 }
+
+
 
 void Object::setGLColor() const {
     unsigned color = faceColor_;
@@ -162,4 +165,24 @@ void Object::setGLColor() const {
     color = color >> 8;
     r = color & 255;
     glColor3b(r, g, b);
+}
+
+void Object::init() const
+{
+    /* world coordinate system */
+    glPushMatrix();
+    /* father coordinate system */
+
+    // rotate around father obj
+    glRotatef(0, 0, 1, 0);
+    glTranslatef(transform_.localPosition().x(), transform_.localPosition().y(), transform_.localPosition().z());
+    // rotate itself
+    /* eulerAngle realize */
+    glRotatef(transform_.eulerAngles().x(), 1, 0, 0);
+    glRotatef(transform_.eulerAngles().y(), 0, 1, 0);
+    glRotatef(transform_.eulerAngles().z(), 0, 0, 1);
+
+    glScalef(transform_.scale().x(), transform_.scale().y(), transform_.scale().z());
+    draw();
+    glPopMatrix();
 }
