@@ -1,7 +1,7 @@
 #include <iostream>
 #include <GL/freeglut.h>
 #include "main.h"
-#include "Tool.h"
+#include "Utility.h"
 #include "Object/Object.h"
 #include <array>
 #include <ctime>
@@ -14,15 +14,33 @@ static vector<weak_ptr<Object>> objs;
 
 int main(int argc, char *argv[])
 {
-    string dir(argv[0]);
-    dir = dir.substr(0, dir.rfind('\\')) + "\\..\\objdata\\gaoda.obj";
+    static Object demo_model;
+    demo_model.vertices() = {{1, 1, 1}, {1, 1, -1}, {-1, 1, -1}, {-1, 1, 1},
+                            {1, -1, 1}, {1, -1, -1}, {-1, -1, -1}, {-1, -1, 1}};
+    demo_model.faceColor() = Utility::to24BitColor(65, 65, 65);
+    demo_model.faces() = {{{0, -1, -1}, {1, -1, -1}, {2, -1, -1}, {3, -1, -1}},
+                          {{4, -1, -1}, {0, -1, -1}, {3, -1, -1}, {7, -1, -1}},
+                          {{7, -1, -1}, {2, -1, -1}, {1, -1, -1}, {5, -1, -1}},
+                          {{5, -1, -1}, {4, -1, -1}, {7, -1, -1}, {6, -1, -1}},
+                          {{5, -1, -1}, {1, -1, -1}, {0, -1, -1}, {4, -1, -1}}};
+
+    string dir;
     if(argc == 2){
         dir = argv[1];
     }
-    shared_ptr<Object> sp_obj = make_shared<Object>(dir);
-    sp_obj->faceColor() = Tool::to24BitColor(65, 65, 65);
-    objs.push_back(weak_ptr<Object>(sp_obj));
-    cam_poz.r() = sp_obj->modelSize() * 3;
+    shared_ptr<Object> spObj;
+    if(dir != "")
+        spObj = make_shared<Object>(dir);
+    else
+        spObj = shared_ptr<Object>(&demo_model);
+
+    spObj->faceColor() = Utility::to24BitColor(65, 65, 65);
+    spObj->transform().localPosition() = Vector3(0, -spObj->modelSize() / 4 * 3, 0);
+    spObj->transform().eulerAngles() = Vector3(0, 90, 0);
+
+    objs.push_back(weak_ptr<Object>(spObj));
+    cam.r() = spObj->modelSize() * 3;
+    cout << "camera r: " << cam.r() << endl;
 
     glutInit(&argc, argv);
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -30,7 +48,6 @@ int main(int argc, char *argv[])
     glutCreateWindow(TITLE);
 
     init();
-    light();
     glutReshapeFunc(reshape);
     glutDisplayFunc(display);
     glutIdleFunc(idle);
@@ -61,10 +78,11 @@ void init()
 {
     enableSmooth();
     glEnable(GL_DEPTH_TEST);
-    glClearColor(Tool::toGL_RGB(BG_RED),
-                 Tool::toGL_RGB(BG_GREEN),
-                 Tool::toGL_RGB(BG_BLUE),
+    glClearColor(Utility::toGL_RGB(BG_RED),
+                 Utility::toGL_RGB(BG_GREEN),
+                 Utility::toGL_RGB(BG_BLUE),
                  BG_ALPHA);
+    light();
 }
 
 void enableSmooth()
@@ -83,21 +101,25 @@ void enableSmooth()
 
 void display()
 {
+    // init
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    cam_poz.calCart();
+    // model matrix
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    // carmera
-    gluLookAt(cam_poz.x(), cam_poz.y(), cam_poz.z(),
+    // carmera view
+    cam.calCart();
+    gluLookAt(cam.x(), cam.y(), cam.z(),
               0, 0, 0,
-              -sin(cam_poz.theta()), cos(cam_poz.theta()), 0);
+              -sin(cam.theta()), cos(cam.theta()), 0);
+    // world axis
     drawAxis();
+    // object
     for(auto &i : objs){
         shared_ptr<Object> sp(i.lock());
         if(sp){
-            sp->draw();
+            sp->init();
         }
     }
-
     // clear matrix stack.
     glutSwapBuffers();
 }
@@ -119,36 +141,35 @@ void keyboard(unsigned char key, int x, int y)
             exit(0);
         case 'w':
         case 'W':
-            if(cam_poz.r() > 0){
-                cam_poz.r() -= .25;
+            if(cam.r() - .4 > 0){
+                cam.r() -= .4;
             }
-            cout << cam_poz.r() << endl;
             break;
         case 'S':
         case 's':
-            if(cam_poz.r() < 10000){
-                cam_poz.r() += .25;
+            if(cam.r() + .4 < 10000){
+                cam.r() += .4;
             }
-            cout << cam_poz.r() << endl;
             break;
     }
 }
 
 void specialKey(int key, int x, int y)
 {
+    GLfloat dr = Utility::toRad(4);
     switch(key){
         case GLUT_KEY_LEFT:
             break;
         case GLUT_KEY_RIGHT:
             break;
         case GLUT_KEY_UP:
-            if(cam_poz.theta() < Tool::toRad(90)){
-                cam_poz.theta() += Tool::toRad(4);
+            if(cam.theta() + dr < Utility::toRad(90)){
+                cam.theta() += dr;
             }
             break;
         case GLUT_KEY_DOWN:
-            if(cam_poz.theta() > Tool::toRad(-90)){
-                cam_poz.theta() -= Tool::toRad(4);
+            if(cam.theta() - dr > Utility::toRad(-90)){
+                cam.theta() -= dr;
             }
             break;
     }
@@ -159,16 +180,7 @@ void reshape(GLint w, GLint h)
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
-    // if(w <= h){
-    //     glOrtho(-2, 2, -2.f * h / w, 2. * w / h, 1, 20);
-    // }else{
-    //     glOrtho(-2.f * w / h, 2.f * w / h, -2, 2, 1, 20);
-    // }
     gluPerspective(100, static_cast<GLdouble>(w) / h , 0.1, 500);
-
-    glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
 }
 
 void idle()
@@ -185,9 +197,10 @@ void idle()
     }else{
         ++fps_adapt;
     }
-    // cout << setiosflags(ios::fixed) << setprecision(1);
-    // cout << "FPS: " << CLOCKS_PER_SEC / static_cast<double>(dt) << " adapt: "
-    //      << fps_adapt << " \r" ;
+    // debug log
+    cout << setiosflags(ios::fixed) << setprecision(1);
+    cout << "FPS: " << CLOCKS_PER_SEC / static_cast<double>(dt) << " adapt: "
+         << fps_adapt << "         \r";
     Sleep(fps_adapt);
     glutPostRedisplay();
 }

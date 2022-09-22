@@ -9,13 +9,11 @@
 #include<gl/freeglut.h>
 #include<array>
 #include"SphCoor/SphCoor.h"
-#include"Tool.h"
+#include"Utility.h"
 #include <ctime>
-enum Axis{
-    X, Y, Z
-};
+#include"Object/Object.h"
 
-static SphCoor cam_poz(4, Tool::toRad(90), Tool::toRad(30));
+static SphCoor cam(4, Utility::toRad(90), Utility::toRad(30));
 
 static constexpr size_t LEN = 50;
 static const int WINDOW_WIDTH = 640;
@@ -30,7 +28,7 @@ static const unsigned char BG_BLUE = 0;
 static const GLfloat BG_ALPHA = 1;
 
 static unsigned int fps_adapt = 10;
-static double fps_lock = 60;
+static double fps_lock = 50;
 
 void reshape(GLint w, GLint h);
 void init();

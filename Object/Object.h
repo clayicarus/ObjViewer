@@ -12,8 +12,9 @@
 #include<sstream>
 #include<functional>
 #include<unordered_map>
-#include "../Vertex/Vertex3.h"
-#include "../Vertex/Vertex2.h"
+#include "../Vector/Vector3.h"
+#include "../Vector/Vector2.h"
+#include "Transform/Transform.h"
 
 class Object {
 public:
@@ -22,28 +23,35 @@ public:
     Object() = default;
     Object(std::string path) {import(path);};
 
-    std::vector<Vertex3>::size_type vertexNum() const {return vertices_.size();}
-    std::vector<Vertex3>& vertices() {return vertices_;}
-    std::vector<Vertex2>& textureCoordinates() {return texCoords_;}
-    std::vector<Vertex3>& normalVectors() {return normalVectors_;}
+    std::vector<Vector3>::size_type vertexNum() const {return vertices_.size();}
+    std::vector<Vector3>& vertices() {return vertices_;}
+    std::vector<Vector2>& textureCoordinates() {return texCoords_;}
+    std::vector<Vector3>& normalVectors() {return normalVectors_;}
     std::vector<Face>& faces() {return faces_;}
     unsigned& faceColor() {return faceColor_;}
-    void import(const std::string path);
-    void draw() const;
+    Transform& transform() {return transform_;}
+
     GLfloat modelSize() const {return modelSize_;}
+
+    void import(const std::string path);
+    void init() const;
 private:
     unsigned faceColor_ = 0xffffff;
     GLfloat modelSize_;
-    std::vector<Vertex3> vertices_;
-    std::vector<Vertex2> texCoords_;
-    std::vector<Vertex3> normalVectors_;
+    std::vector<Vector3> vertices_;
+    std::vector<Vector2> texCoords_;
+    std::vector<Vector3> normalVectors_;
     std::vector<Face> faces_;
+
+    Transform transform_;
+
     void readAnnotation(std::stringstream &ss);
     void readVertex(std::stringstream &ss);
     void readTexture(std::stringstream &ss);
     void readNormalVector(std::stringstream &ss);
     void readFace(std::stringstream &ss);
     void setGLColor() const;
+    void draw() const;
 };
 
 #endif //OBJIMPORT_OBJECT_H
