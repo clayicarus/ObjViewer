@@ -28,7 +28,9 @@ static const unsigned char BG_BLUE = 0;
 static const GLfloat BG_ALPHA = 1;
 
 static unsigned int fps_adapt = 10;
-static double fps_lock = 50;
+static clock_t deltaTime_clock = 0;
+static double deltaTime_s;
+static double fps_lock = 60;
 
 void reshape(GLint w, GLint h);
 void init();

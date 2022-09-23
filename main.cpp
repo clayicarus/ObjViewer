@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     demo_model.faceColor() = Utility::to24BitColor(65, 65, 65);
     demo_model.faces() = {{{0, -1, -1}, {1, -1, -1}, {2, -1, -1}, {3, -1, -1}},
                           {{4, -1, -1}, {0, -1, -1}, {3, -1, -1}, {7, -1, -1}},
-                          {{7, -1, -1}, {2, -1, -1}, {1, -1, -1}, {5, -1, -1}},
+                          {{6, -1, -1}, {2, -1, -1}, {1, -1, -1}, {5, -1, -1}},
                           {{5, -1, -1}, {4, -1, -1}, {7, -1, -1}, {6, -1, -1}},
                           {{5, -1, -1}, {1, -1, -1}, {0, -1, -1}, {4, -1, -1}}};
 
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     spObj->faceColor() = Utility::to24BitColor(65, 65, 65);
     spObj->transform().localPosition() = Vector3(0, -spObj->modelSize() / 4 * 3, 0);
-    spObj->transform().eulerAngles() = Vector3(0, 90, 0);
+    spObj->transform().eulerAngles() = Vector3(0, 30, 0);
 
     objs.push_back(weak_ptr<Object>(spObj));
     cam.r() = spObj->modelSize() * 3;
@@ -135,20 +135,19 @@ void keyboard(unsigned char key, int x, int y)
 {
     switch(key){
         case VK_SPACE :
-            cout << "space key" << endl;
             break;
         case VK_ESCAPE :
             exit(0);
         case 'w':
         case 'W':
-            if(cam.r() - .4 > 0){
-                cam.r() -= .4;
+            if(cam.r() - 200 * deltaTime_s > 0){
+                cam.r() -= 200 * deltaTime_s;
             }
             break;
         case 'S':
         case 's':
-            if(cam.r() + .4 < 10000){
-                cam.r() += .4;
+            if(cam.r() + 200 * deltaTime_s < 10000){
+                cam.r() += 200 * deltaTime_s;
             }
             break;
     }
@@ -156,20 +155,27 @@ void keyboard(unsigned char key, int x, int y)
 
 void specialKey(int key, int x, int y)
 {
-    GLfloat dr = Utility::toRad(4);
+    shared_ptr<Object> obj(objs.back());
+    GLfloat deltaRad = Utility::toRad(200);
     switch(key){
         case GLUT_KEY_LEFT:
+            obj->transform().eulerAngles() = (Vector3(obj->transform().eulerAngles().x(),
+                                            obj->transform().eulerAngles().y() - 300 * deltaTime_s,
+                                            obj->transform().eulerAngles().z()));
             break;
         case GLUT_KEY_RIGHT:
+            obj->transform().eulerAngles() = (Vector3(obj->transform().eulerAngles().x(),
+                                            obj->transform().eulerAngles().y() + 300 * deltaTime_s,
+                                            obj->transform().eulerAngles().z()));
             break;
         case GLUT_KEY_UP:
-            if(cam.theta() + dr < Utility::toRad(90)){
-                cam.theta() += dr;
+            if(cam.theta() + deltaRad * deltaTime_s < Utility::toRad(90)){
+                cam.theta() += deltaRad * deltaTime_s;
             }
             break;
         case GLUT_KEY_DOWN:
-            if(cam.theta() - dr > Utility::toRad(-90)){
-                cam.theta() -= dr;
+            if(cam.theta() - deltaRad * deltaTime_s > Utility::toRad(-90)){
+                cam.theta() -= deltaRad * deltaTime_s;
             }
             break;
     }
@@ -185,13 +191,13 @@ void reshape(GLint w, GLint h)
 
 void idle()
 {
-    // lock fps
-    static clock_t dt = 0;
+    // lock fps, time
     static clock_t clk = 0;
     double fps;
-    dt = clock() - clk;
+    deltaTime_clock = clock() - clk;
     clk = clock();
-    fps = CLOCKS_PER_SEC / static_cast<double>(dt);
+    deltaTime_s = deltaTime_clock / static_cast<double>(CLOCKS_PER_SEC);
+    fps = 1 / deltaTime_s;
     if(fps < fps_lock && fps_adapt > 0){
         --fps_adapt;
     }else{
@@ -199,7 +205,7 @@ void idle()
     }
     // debug log
     cout << setiosflags(ios::fixed) << setprecision(1);
-    cout << "FPS: " << CLOCKS_PER_SEC / static_cast<double>(dt) << " adapt: "
+    cout << "FPS: " << fps << " adapt: "
          << fps_adapt << "         \r";
     Sleep(fps_adapt);
     glutPostRedisplay();
